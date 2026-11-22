@@ -1,6 +1,11 @@
---- Course Critic database schema 
+---- Course Critic database schema  ------------ 
+---- Databes of users, courses, reviews, audit_log --------
+---- also all primary keys by the id -------
 
-PRAGMA TABLE IF NOT EXISTS users (
+
+PRAGMA foreign_keys = ON;
+--- users database ---
+CREATE TABLE IF NOT EXISTS users (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     username        TEXT    NOT NULL UNIQUE,
     email           TEXT    NOT NULL UNIQUE,
@@ -9,9 +14,10 @@ PRAGMA TABLE IF NOT EXISTS users (
                             CHECK (role IN('student', 'moderator', 'admin')),
     failed_attempts INTEGER NOT NULL DEFAULT 0,
     locked_until    TEXT,
-    create_at       TEXT    NOT NULL DEFAULT (datetime('now'))
+    created_at       TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+--- courses database ------- 
 CREATE TABLE IF NOT EXISTS courses (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     code            TEXT NOT NULL UNIQUE,
@@ -20,9 +26,10 @@ CREATE TABLE IF NOT EXISTS courses (
     department      TEXT NOT NULL
 );
 
+---- reviews databse ----------
 CREATE TABLE IF NOT EXISTS reviews (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    course_id       INTEGER NOT NULL REFERENCES course(id)  ON DELETE CASCADE,
+    course_id       INTEGER NOT NULL REFERENCES courses(id)  ON DELETE CASCADE,
     user_id         INTEGER NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
     rating          INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5 ),
     body            TEXT    NOT NULL,
@@ -30,9 +37,10 @@ CREATE TABLE IF NOT EXISTS reviews (
                             CHECK (status IN ('pending', 'approved', 'rejected')),
     moderated_by    INTEGER REFERENCES users(id) ON DELETE SET NULL,
     moderated_at    TEXT,
-    create_at       TEXT    NOT NULL DEFAULT (datetime('now'))    
+    created_at       TEXT    NOT NULL DEFAULT (datetime('now'))    
 );
 
+----- databse for audit_logs ------------
 CREATE TABLE IF NOT EXISTS audit_log (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id         INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -42,5 +50,6 @@ CREATE TABLE IF NOT EXISTS audit_log (
     timestamp       TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+--------- create indexes if not exist ---------
 CREATE INDEX IF NOT EXISTS idx_reviews_course ON reviews(course_id, status);
 CREATE INDEX IF NOT EXISTS idx_audit_time     ON audit_log(timestamp);
