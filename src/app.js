@@ -1,5 +1,5 @@
 //// rate my module - application entry point (baseline / main branch )
-require('dotnev').config();
+require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
@@ -11,23 +11,23 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
 
-app.use(express.urlencoded({ extendes: false }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(expredd.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.use(session({
-    secet: process.env.SESSION_SECRET || 'dev-only-secret', 
+    secret: process.env.SESSION_SECRET || 'dev-only-secret', 
     resave: false, 
     saveUninitialized: false,
 }));
 
 app.use((req, res, next) => {
-    res.lacal.currentUser = erq.session.user || null;
+    res.lacals.currentUser = req.session.user || null;
     next();
 });
 
 app.use('/', require('./routes/auth'));
-app.use('/', require('./routes/course'));
+app.use('/', require('./routes/courses'));
 app.use('/moderation', require('./routes/moderation'));
 app.use('/admin', require('./routes/admin'));
 app.use('/api', require('./routes/api'));
@@ -46,7 +46,7 @@ app.use((err, req, res, next) => {
 
 const port = process.env.PROT || 3000;
 if (require.main === module ) {
-    app.listen(port, () => console.log(`RateMuModule running on http://localhost:${port}`));
+    app.listen(port, () => console.log(`CourseCritic running on http://localhost:${port}`));
 }
 
 module.exports = app;
