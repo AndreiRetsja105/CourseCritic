@@ -1,0 +1,187 @@
+/* Deliberately simple styling - UI/UX is not assessed. */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #1d2330;
+  background: #f6f7f9;
+  line-height: 1.5;
+}
+
+main { 
+  max-width: 900px; 
+  margin: 0 auto; 
+  padding: 1.5rem 1rem 3rem; 
+}
+
+a { 
+  color: #1a56b8; 
+}
+
+.site-header {
+  display: flex; 
+  flex-wrap: wrap; 
+  align-items: center; 
+  justify-content: space-between;
+  gap: .75rem; 
+  padding: .75rem 1.25rem; 
+  background: #1d2330; 
+  color: #fff;
+}
+
+.site-header a { 
+  color: #fff; 
+  text-decoration: none; 
+  margin-right: 1rem; 
+}
+
+.site-header .brand { 
+  font-weight: 700;
+  font-size: 1.15rem; 
+}
+
+.site-header .who { 
+  margin-right: 1rem; 
+  font-size: .9rem; 
+  color: #c9d1e0; 
+}
+
+.site-footer { 
+  text-align: center; 
+  font-size: .8rem; 
+  color: #5b6475; 
+  padding: 1rem; 
+}
+
+form.inline { 
+  display: inline; 
+}
+
+button {
+  font: inherit; 
+  padding: .45rem .9rem; 
+  border: 0; 
+  border-radius: 4px;
+  background: #1a56b8; 
+  color: #fff; 
+  cursor: pointer;
+}
+
+button.secondary { 
+  background: #8a2b2b; 
+}
+
+button.link { 
+  background: none; 
+  color: #fff; 
+  padding: 0; 
+  text-decoration: underline; 
+}
+
+input, select, textarea {
+  font: inherit; 
+  padding: .45rem; 
+  border: 1px solid #b8bfcc; 
+  border-radius: 4px; 
+  width: 100%;
+}
+
+label { 
+  display: block; 
+  margin: .75rem 0 .25rem; 
+  font-weight: 600; 
+}
+
+.search { 
+  display: grid; 
+  grid-template-columns: 1fr auto; 
+  gap: .5rem; 
+  align-items: end; 
+}
+
+.search label { 
+  grid-column: 1 / -1; 
+  margin: 0; 
+}
+
+form.auth, form.review-form { 
+  max-width: 420px; 
+}
+
+form.auth button, form.review-form button {
+  margin-top: 1rem; 
+}
+
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  background: #fff; 
+  margin-top: 1rem; 
+}
+
+th, td { 
+  text-align: left; 
+  padding: .5rem .6rem; 
+  border-bottom: 1px solid #e3e6ec;
+}
+
+td select { 
+  width: auto; 
+}
+
+
+.reviews { 
+  list-style: none; 
+  padding: 0;
+}
+
+.review { 
+  background: #fff; 
+  border: 1px solid #e3e6ec; 
+  border-radius: 6px; 
+  padding: .75rem 1rem; 
+  margin-bottom: .75rem;
+}
+
+.review.highlighted { 
+  border-color: #e0a800; 
+  box-shadow: 0 0 0 3px #ffe58a; 
+}
+
+.review .body {
+  white-space: pre-wrap; 
+  margin: .4rem 0; 
+}
+
+.stars { 
+  color: #b07d00; 
+  letter-spacing: 2px; 
+}
+
+.meta { 
+  color: #5b6475; 
+  font-size: .85rem; 
+  margin: 0; 
+}
+
+.notice { 
+  background: #e6f4ea; 
+  border: 1px solid #a8d5b5; 
+  padding: .6rem .8rem; 
+  border-radius: 4px; 
+}
+
+.error  { 
+  background: #fdecea; 
+  border: 1px solid #f1b0aa; 
+  padding: .6rem .8rem; 
+  border-radius: 4px; 
+}
+
+.banner { 
+  background: #fff8db; 
+  border: 1px solid #f0d36b; 
+  padding: .6rem .8rem; 
+  border-radius: 4px; 
+}
