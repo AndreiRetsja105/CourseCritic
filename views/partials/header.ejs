@@ -1,0 +1,29 @@
+<%# shared page header: included at the top of every page %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CourseCritic - anonymous student reviews of college modules." >
+    <title><%= typeof title !== 'undefined' ? title + '|' : '' %>CourseCritic</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="/">CourseCritic</a>
+    <nav>
+        <a href="/">Courses</a>
+        <%# Links are shown only to the role that can use them %>
+        <% if (currentUser && currentUser.role === 'moderator') { %><a href="/moderation">Moderation</a><% } %>
+        <% if (currentUser && currentUser.role === 'admin') { %><a href="/admin/users">Users</a><% } %>
+        <% if (currentUser) { %>
+            <span class="who">Signed in as <strong><%= currentUser.username %></strong> (<%= currentUser.role %>)</span>
+            <%# Logout is a POST form, not a link %>
+            <form method="post" action="/logout" class="inline"><button type="submit" class="link">Log Out</button></form>
+        <% } else { %>
+            <a href="/login">Log In</a>
+            <a href="/register">Register</a>
+        <% } %>
+    </nav>
+</header>
+<main>
