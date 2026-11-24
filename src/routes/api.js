@@ -7,8 +7,8 @@ const router = express.Router();
 ////// GET/ Api/courser/id/reviews - aproved reviews for a course >>> there is no author data <<<<
 router.get('/courses/:id/reviews', (req, res) => { 
     const reviews = db.prepare(
-        `SELECTED id, rating, body, created_at, FROM reviews 
-            WHERE course_id = ? AND status 'apreoved'
+        `SELECT id, rating, body, created_at FROM reviews 
+            WHERE course_id = ? AND status = 'approved'
             ORDER BY created_at DESC`
     ).all(req.params.id);
     res.json(reviews); 
