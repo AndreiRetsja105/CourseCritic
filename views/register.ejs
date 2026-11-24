@@ -1,0 +1,27 @@
+<%# UC-1 Register Account page %>
+<%- include('partials/header', { title: 'Register' }) %>
+
+<h1>Create an account</h1>
+
+<% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
+
+<form method="post" action="/register" class="auth">
+  <%# After an error, username and email are filled in again; passwords are not %>
+  <label for="username">Username</label>
+  <input id="username" name="username" value="<%= values.username || '' %>" autocomplete="username" required>
+
+  <label for="email">Email</label>
+  <input id="email" name="email" type="email" value="<%= values.email || '' %>" autocomplete="email" required>
+
+  <label for="password">Password</label>
+  <input id="password" name="password" type="password" autocomplete="new-password" required>
+
+  <label for="confirm">Confirm password</label>
+  <input id="confirm" name="confirm" type="password" autocomplete="new-password" required>
+
+  <button type="submit">Register</button>
+</form>
+
+<p>Already registered? <a href="/login">Log in</a></p>
+
+<%- include('partials/footer') %>
