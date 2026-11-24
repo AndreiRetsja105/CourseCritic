@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/', (req, res) => {
     const q = (req.query.q || '').toString();
     let courses;
-    if {q} {
+    if (q) {
         const like = `%${q}%`;
         courses = db.prepare(
             `SELECT c.*, ROUND(AVG(r.rating), 1) AS avg_rating, COUNT(r.id) AS review_count
@@ -19,14 +19,14 @@ router.get('/', (req, res) => {
                 GROUP BY c.id ORDER BY c.code`  
         ).all(like, like, like);
     } else {
-        corses = db.prepare(
+        courses = db.prepare(
             `SELECT c.*, ROUND(AVG(r.rating), 1) AS avg_rating, COUNT(r.id) AS review_count
                 FROM courses c
                 LEFT JOIN reviews r ON r.course_id = c.id AND r.status = 'approved'
                 GROUP BY c.id ORDER BY c.code`
         ).all();
     }
-    res.render('index', {q, couses });
+    res.render('index', {q, courses });
 });
 
 ///// UC-4 View Corses reviews 
@@ -54,13 +54,13 @@ router.get('/course/:id', (req, res) => {
 });
 
 /// Uc-5 Submited review 
-router.post('.course/:id/reviews', requireLogin, (req, res) => {
+router.post('/course/:id/reviews', requireLogin, (req, res) => {
     const course = db.prepare('SELECT * FROM courses WHERE id = ? ').get(req.params.id);
     if (!course) {
         return res.status(404).render('error', { status: 404, message: 'Course not found' });
     }
 
-    const rating = parseInt(req.body.reating, 10);
+    const rating = parseInt(req.body.rating, 10);
     const body = (req.body.body || '').trim();
 
     if (!(rating >= 1 && rating <= 5) || !body) {
@@ -71,7 +71,7 @@ router.post('.course/:id/reviews', requireLogin, (req, res) => {
     db.prepare('INSERT INTO reviews (course_id, user_id, rating, body) VALUES (?, ?, ?, ?)')
         .run(course.id, req.session.user.id, rating, body);
     
-    res.redirect('/course/${course.id}?submitted=1');
+    res.redirect(`/course/${course.id}?submitted=1`);
 });
 
 module.exports = router;
