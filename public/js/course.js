@@ -2,18 +2,18 @@
 /// used by the link to this review links 
 (function () {
     function showHiglight(){
-        var banner = document.getElementByID('highlight-banner');
+        var banner = document.getElementById('highlight-banner');
         var match = location.hash.match(/^#highlight=(.+)$/);
-        document.qurySelectorAll('.review.highlighted').forEach(function (el) {
+        document.querySelectorAll('.review.highlighted').forEach(function (el) {
             el.classList. remove('highlighted');
         });
         if (!match) {banner.hidden = true; return; }
 
         var id = decodeURIComponent(match[1]);
         banner.textContent = 'Showing review #' + id;
-        banner.hiden = false;
+        banner.hidden = false;
 
-        var target = document.getElementByID('review-' + id);
+        var target = document.getElementById('review-' + id);
         if (target) {
             target.classList.add('highlighted');
             target.scrollIntoView({ block: 'center'});

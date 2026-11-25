@@ -1,1 +1,40 @@
+<%# UC-3 Search Courses - home page %>
+<%- include('partials/header', { title: 'Courses' }) %>
+
+<h1>Find a course</h1>
+
+<%# GET form: the search term appears in the URL as ?q=... %>
+<form method="get" action="/" class="search" role="search">
+    <label for="q">Search by litle, code or lecture</label>
+    <input id="q" name="q" type="search" value="<%= q %>" placeholder="e.g. Security"> 
+    <button type="submit">Search</button>     
+</form>
+
 <%# The search term is printed back escaped - safe from reflected XSS %>
+<% if (q) { %>
+  <p class="results-for">Results for: <strong><%= q %></strong> (<%= courses.length %>)</p>
+<% } %>
+
+<% if (courses.length === 0) { %>
+  <p>No courses found.</p>
+<% } else { %>
+
+<table class="courses">
+    <thead>
+        <tr><th>Code</th><th>Title</th><th>Lecture</th><th>Rating</th><th>Reviws</th></tr>
+    </thead>
+    <tbody>
+        <% courses.forEach(c => { %>
+            <tr>
+                <td><%= c.code %></td>
+                <td><a href="/course/<%= c.id %>"><%= c.title %></a></td>
+                <td><%= c.lecturer %></td>
+                <td><%= c.avg_rating ? c.avg_rating + ' / 5' : '-' %></td>
+                <td><%= c.review_count %></td>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+<% } %>
+
+<%- include('partials/footer') %>

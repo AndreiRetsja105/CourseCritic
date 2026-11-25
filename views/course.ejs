@@ -1,1 +1,66 @@
-<%# Review text written by users is escaped - safe from stored XSS %>
+<%# UC-4 View Course Reviews + UC-5 Submit Review %>
+<%- include('partials/header', { title: course.code }) %>
+
+<p><a href="/">&larr; All courses</a></p>
+<h1><%= course.code %> &ndash; <%= course.title %></h1>
+<p class="meta">Lecturer: <%= course.lecturer %> &middot; Department: <%= course.department %></p>
+
+<%# Filled in by /js/course.js when the URL contains #highlight=review-id %>
+<div id="highlight-banner" class="banner" hidden></div>
+
+<% if (submitted) { %>
+  <p class="notice">Thank you! Your review has been submitted and is waiting for moderation.</p>
+<% } %>
+
+<h2>Reviews (<%= reviews.length %>)</h2>
+<% if (reviews.length === 0) { %>
+  <p>No approved reviews yet.</p>
+<% } %>
+
+<ul class="reviews">
+  <% reviews.forEach(r => { %>
+    <li class="review" id="review-<%= r.id %>">
+      <div class="stars" aria-label="<%= r.rating %> out of 5"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></div>
+      <%# Review text written by users is escaped - safe from stored XSS %>
+      <p class="body"><%= r.body %></p>
+      <%# Reviews are anonymous: no author name is shown %>
+      <p class="meta">Anonymous student &middot; <%= r.created_at %> &middot;
+        <a href="#highlight=<%= r.id %>">Link to this review</a></p>
+    </li>
+  <% }) %>
+</ul>
+
+<%# A student can see their own reviews that are still waiting for moderation %>
+<% if (myPending.length) { %>
+  <h3>Your reviews awaiting moderation</h3>
+  <ul class="reviews pending">
+    <% myPending.forEach(r => { %>
+      <li class="review">
+        <div class="stars"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></div>
+        <p class="body"><%= r.body %></p>
+        <p class="meta">Status: <%= r.status %></p>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<h2>Write a review</h2>
+<% if (currentUser) { %>
+  <form method="post" action="/course/<%= course.id %>/reviews" class="review-form">
+    <label for="rating">Rating</label>
+    <select id="rating" name="rating" required>
+      <option value="">Choose…</option>
+      <% for (let i = 5; i >= 1; i--) { %><option value="<%= i %>"><%= i %></option><% } %>
+    </select>
+
+    <label for="body">Your review</label>
+    <textarea id="body" name="body" rows="5" maxlength="2000" required></textarea>
+
+    <button type="submit">Submit review</button>
+  </form>
+<% } else { %>
+  <p><a href="/login?next=/course/<%= course.id %>">Log in</a> to write a review.</p>
+<% } %>
+
+<script src="/js/course.js"></script>
+<%- include('partials/footer') %>
