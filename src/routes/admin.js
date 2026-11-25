@@ -6,6 +6,7 @@ const { requireRole } = require('../middleware/auth');
 const router = express.Router();
 router.use(requireRole('admin'));
 
+//// whitelist: only these three roles can ever be assigned
 const ROLES = ['student', 'moderator', 'admin'];
 
 router.get('/users', (req, res) => {
@@ -31,6 +32,9 @@ router.post('/users/:id/role', (req, res) => {
 
 router.post('/users/:id/delete', (req, res) => {
     const id = parseInt(req.params.id, 10);
+
+    //// an admin cannot change their own role or delete themselves
+    //// (prevents locking the system with no admin; separation of duties)
     if (id === req.session.user.id) {
         return res.status(403).render('error', { status: 403, message: 'You cannot delete your own account here' });
     }

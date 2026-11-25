@@ -1,0 +1,46 @@
+<%# UC-7 Manage Users - admin only %>
+<%- include('partials/header', { title: 'Manage users' }) %>
+
+<h1>Manage users</h1>
+
+<% if (message) { %><p class="notice"><%= message %></p><% } %>
+
+<table class="users">
+  <thead>
+    <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Created</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+    <% users.forEach(u => { %>
+      <tr>
+        <td><%= u.id %></td>
+        <td><%= u.username %></td>
+        <td><%= u.email %></td>
+        <td>
+          <%# An admin cannot change their own role %>
+          <% if (u.id === currentUser.id) { %>
+            <%= u.role %>
+          <% } else { %>
+            <form method="post" action="/admin/users/<%= u.id %>/role" class="inline">
+              <select name="role" aria-label="Role for <%= u.username %>">
+                <% roles.forEach(role => { %>
+                  <option value="<%= role %>" <%= role === u.role ? 'selected' : '' %>><%= role %></option>
+                <% }) %>
+              </select>
+              <button type="submit">Save</button>
+            </form>
+          <% } %>
+        </td>
+        <td><%= u.created_at %></td>
+        <td>
+          <% if (u.id !== currentUser.id) { %>
+            <form method="post" action="/admin/users/<%= u.id %>/delete" class="inline">
+              <button type="submit" class="secondary">Delete</button>
+            </form>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<%- include('partials/footer') %>

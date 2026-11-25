@@ -1,0 +1,32 @@
+<%# UC-6 Moderate Review - moderator only %>
+<%- include('partials/header', { title: 'Moderation' }) %>
+
+<h1>Moderation queue</h1>
+
+<% if (message) { %><p class="notice"><%= message %></p><% } %>
+
+<% if (pending.length === 0) { %>
+  <p>No reviews waiting for moderation.</p>
+<% } else { %>
+  <ul class="reviews">
+    <% pending.forEach(r => { %>
+      <li class="review">
+        <p class="meta"><strong><%= r.code %></strong> &ndash; <%= r.title %> &middot; submitted <%= r.created_at %></p>
+        <div class="stars"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></div>
+        <%# Review text is escaped - the moderator's browser is protected from stored XSS %>
+        <p class="body"><%= r.body %></p>
+        <%# Separation of duties: no buttons for the moderator's own review %>
+        <% if (r.user_id === currentUser.id) { %>
+          <p class="meta">This is your own review &ndash; another moderator must review it.</p>
+        <% } else { %>
+          <form method="post" action="/moderation/<%= r.id %>" class="inline">
+            <button type="submit" name="action" value="approve">Approve</button>
+            <button type="submit" name="action" value="reject" class="secondary">Reject</button>
+          </form>
+        <% } %>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<%- include('partials/footer') %>

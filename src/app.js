@@ -22,7 +22,7 @@ app.use(session({
 }));
 
 app.use((req, res, next) => {
-    res.lacals.currentUser = req.session.user || null;
+    res.locals.currentUser = req.session.user || null;
     next();
 });
 
@@ -44,7 +44,7 @@ app.use((err, req, res, next) => {
     res.status(500).render('error', { status: 500, message: 'Something went wrong' });
 });
 
-const port = process.env.PROT || 3000;
+const port = process.env.PORT || 3000;
 if (require.main === module ) {
     app.listen(port, () => console.log(`CourseCritic running on http://localhost:${port}`));
 }
