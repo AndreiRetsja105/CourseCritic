@@ -55,10 +55,11 @@ router.post('/login', (req, res) => {
     const {username = '', password = '', next = ''} = req.body;
 
     //// look up the user with a parameterised query
-    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username.trim());
-    
-    ///// compare the typed password with the stored bcrypt hash 
-    if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    //// INSECURE (#10, #14): username and password are pasted into the SQL string
+    //// and the password is compared as plain text in the database
+    const user = db.prepare(
+        `SELECT * FROM users WHERE username = '${username}' AND password_hash = '${password}'` ).get();
+    if (!user) {
         return res.status(401).render('login', { error: 'Invalid username or password', registered: null, next });
     }
 

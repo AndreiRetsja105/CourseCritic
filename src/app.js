@@ -46,7 +46,14 @@ app.use((err, req, res, next) => {
 
 const port = process.env.PORT || 3000;
 if (require.main === module ) {
-    app.listen(port, () => console.log(`CourseCritic running on http://localhost:${port}`));
+      app.listen(port, (err) => {
+    //// Express 5 calls this function with an error if the port is already in use
+    if (err) {
+      console.error(`Cannot start: port ${port} is already in use (${err.code}). Stop the other server first.`);
+      process.exit(1);
+    }
+    console.log(`CourseCritic running on http://localhost:${port}`);
+  });
 }
 
 module.exports = app;
