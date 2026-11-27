@@ -12,7 +12,8 @@
 
 <%# The search term is printed back escaped - safe from reflected XSS %>
 <% if (q) { %>
-  <p class="results-for">Results for: <strong><%= q %></strong> (<%= courses.length %>)</p>
+    <%# INSECURE (#11): the search term is printed WITHOUT escaping - reflected XSS %>
+  <p class="results-for">Results for: <strong><%- q %></strong> (<%= courses.length %>)</p>
 <% } %>
 
 <% if (courses.length === 0) { %>
