@@ -31,8 +31,7 @@ const reseed = db.transaction(() => {
     db.exec("DELETE FROM sqlite_sequence WHERE name IN ('users','courses','reviews','audit_log');");
 
     const insUser = db.prepare('INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)');
-        //// INSECURE (#14): passwords are stored in plain text instead of a bcrypt hash
-    for (const u of users) insUser.run(u.username, u.email, u.password, u.role);
+    for (const u of users) insUser.run(u.username, u.email, bcrypt.hashSync(u.password, 10), u.role);
 
     const insCourse = db.prepare('INSERT INTO courses (code, title, lecturer, department) VALUES (?, ?, ?, ?)');
     for (const c of courses) insCourse.run(...c);
