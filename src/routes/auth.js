@@ -1,79 +1,113 @@
-//// UC-1 register account , Uc-2 logIn and logOut 
+// UC-1 Register Account, UC-2 Log In, Log Out (secure branch)
 const express = require('express');
-const bcrypt = require('bcryptjs');  /// password hashing library 
-const db = require('../db');   /// shared SQlite conn.
+const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
+const db = require('../db');
+const { audit } = require('../logger');
 
 const router = express.Router();
 
-//// show empty registration form 
+const MAX_FAILED = 5;            // failed attempts before the account is locked
+const LOCK_MINUTES = 15;         // how long the account stays locked
+
+//// SECURE #21 rate limiting -at most 20 login attempts per IP address in 15 minutes
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  handler: (req, res) => {
+    audit(req, 'RATE_LIMITED', 'too many login attempts from this IP');
+    res.status(429).render('login', { error: 'Too many login attempts. Please try again later.', registered: null, next: '' });
+  },
+});
+
 router.get('/register', (req, res) => {
-    res.render('register', { error: null, values: {} });
+  res.render('register', { error: null, values: {} });
 });
 
-/// handle registration form 
 router.post('/register', (req, res) => {
-    //// read form fields, dafault  to '' so.trim() never fails on undefined 
-    const { username = '', email = '', password = '', confirm = '', } = req.body;
-    
-    /// values sent back to the form if there is an error 
-    const values = { username, email }; 
-    
-    /// server side validation 
-    if (!username.trim() || !email.trim() || !password) {
-        return res.status(400).render('register', {error: 'All fields are required', values });  /// all field required
-    
-    }
-    if (password !== confirm) {
-        return res.status(400).render('register', {error: 'Password do not match', values });
-    }
+  const { username = '', email = '', password = '', confirm = '' } = req.body;
+  const values = { username, email };
 
-    //// check that username or email is not already taken 
-    const exist = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username.trim(), email.trim());
-    if(exist) {
-        return res.status(400).render('register', {error: 'Username or email already registered', values });
-    }
+  if (!username.trim() || !email.trim() || !password) {
+    return res.status(400).render('register', { error: 'All fields are required.', values });
+  }
+  //// SECURE #17 basic password policy
+  if (password.length < 8) {
+    return res.status(400).render('register', { error: 'Password must be at least 8 characters.', values });
+  }
+  if (password !== confirm) {
+    return res.status(400).render('register', { error: 'Passwords do not match.', values });
+  }
 
-    ////hash the password with bcrypt >> cost factor 10 and automatic salt <<<
-    /// only hash is stored >> the plaintext is never saved<<<
-    const hash = bcrypt.hashSync(password, 10);
-    
-    //// every new user always get the default role STUDENT from the database schema 
-    db.prepare('INsert INTO users (username, email, password_hash) VALUES (?, ?, ?)')
-        .run(username.trim(), email.trim(), hash);
-    res.redirect('/login?registered=1');
+  const exists = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username.trim(), email.trim());
+  if (exists) {
+    return res.status(400).render('register', { error: 'Username or email already registered.', values });
+  }
+
+  //// SECURE #17 only a bcrypt hash (with salt) is stored, never the password
+  const hash = bcrypt.hashSync(password, 10);
+  const result = db.prepare('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)')
+    .run(username.trim(), email.trim(), hash);
+
+  audit(req, 'REGISTER', `new user ${username.trim()}`, result.lastInsertRowid);
+  res.redirect('/login?registered=1');
 });
 
-///----------- UC-2 Login in ----------------
-
-//// show login form
 router.get('/login', (req, res) => {
-    res.render('login', {error: null, registered: req.query.registered, next: req.query.next || '' });
+  res.render('login', { error: null, registered: req.query.registered, next: req.query.next || '' });
 });
 
-/// handle login form 
-router.post('/login', (req, res) => {
-    const {username = '', password = '', next = ''} = req.body;
+router.post('/login', loginLimiter, (req, res, next) => {
+  const { username = '', password = '', next: nextUrl = '' } = req.body;
+  const fail = (message) => res.status(401).render('login', { error: message, registered: null, next: nextUrl });
 
-    //// look up the user with a parameterised query
-    //// SECURE (#15, #17): parameterised query and bcrypt comparison of the password hash
-    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username.trim());
-    
-    ///// compare the typed password with the stored bcrypt hash 
-    if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-        return res.status(401).render('login', { error: 'Invalid username or password', registered: null, next });
+  //// SECURE #15 parameterised query
+  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username.trim());
+
+  //// SECURE #21 account lockout - a locked account cannot log in even with the right password
+  if (user && user.locked_until && new Date(user.locked_until) > new Date()) {
+    audit(req, 'LOGIN_BLOCKED_LOCKED', `locked account ${user.username}`, user.id);
+    return fail('Too many failed attempts. This account is temporarily locked - try again later.');
+  }
+
+  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    if (user) {
+      const attempts = user.failed_attempts + 1;
+      if (attempts >= MAX_FAILED) {
+        const until = new Date(Date.now() + LOCK_MINUTES * 60 * 1000).toISOString();
+        db.prepare('UPDATE users SET failed_attempts = 0, locked_until = ? WHERE id = ?').run(until, user.id);
+        audit(req, 'ACCOUNT_LOCKED', `${user.username} locked for ${LOCK_MINUTES} minutes`, user.id);
+      } else {
+        db.prepare('UPDATE users SET failed_attempts = ? WHERE id = ?').run(attempts, user.id);
+      }
     }
+    audit(req, 'LOGIN_FAILED', `username tried: ${username.trim().slice(0, 50)}`, user ? user.id : null);
+    //// same message for unknown user and wrong password (no user enumeration)
+    return fail('Invalid username or password.');
+  }
 
-    //// store only the minimum nedded in the session - never the password has or email
-    req.session.user = {id: user.id, username: user.username, role: user.role };
-    /// only alowed local user redirects after login 
-    const target = next.startsWith('/') && !next.startsWith('//') ? next : '/';
-    res.redirect(target);
+  //// successful login: reset the counters
+  db.prepare('UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ?').run(user.id);
+
+  //// SECURE #19 new sesion ID after login (prevents session fixation)
+  req.session.regenerate((err) => {
+    if (err) return next(err);
+    req.session.user = { id: user.id, username: user.username, role: user.role };
+    audit(req, 'LOGIN_SUCCESS', `role ${user.role}`, user.id);
+    const target = nextUrl.startsWith('/') && !nextUrl.startsWith('//') ? nextUrl : '/';
+    req.session.save(() => res.redirect(target));
+  });
 });
 
-////------------UC-2 Log out --------------
-// destroy the session on the server, so the old session cookie becomes useless.
 router.post('/logout', (req, res) => {
-    req.session.destroy(() => res.redirect('/'));
+  audit(req, 'LOGOUT');
+  //// SECURE #19 destroy the session on the server and delete the cookie
+  req.session.destroy(() => {
+    res.clearCookie('cc.sid');
+    res.redirect('/');
+  });
 });
 
 module.exports = router;
