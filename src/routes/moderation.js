@@ -2,6 +2,7 @@
 const express = require('express');
 const db = require('../db');
 const { requireRole } = require('../middleware/auth');
+const { audit } = require('../logger');
 
 const router = express.Router();
 router.use(requireRole('moderator'));
@@ -31,16 +32,17 @@ router.post('/:id', (req, res) => {
 
     //// separation of duties: a moderator cannot moderate their own review
     if (review.user_id === req.session.user.id) {
+        audit(req, 'ACCESS_DENIED', 'tried to moderate own review #${review.id}');
         return res.status(403).render('error', { status: 403, message: 'You cannot moderate your own review.' });
     }
 
     //// save the decision and who made it (accountability)
-    //// backticks ` ` are used because the SQL contains 'now' in single quotes
+    //// backticks ' ' are used because the SQL contains 'now' in single quotes
     const status = action === 'approve' ? 'approved' : 'rejected';
     db.prepare(`UPDATE reviews SET status = ?, moderated_by = ?, moderated_at = datetime('now') WHERE id = ?`)
         .run(status, req.session.user.id, review.id);
 
-    res.redirect('/moderation?msg=' + encodeURIComponent(`Review #${review.id} ${status}.`));
+    res.redirect('/moderation?msg=' + encodeURIComponent('Review #${review.id} ${status}.'));
 });
 
 module.exports = router;

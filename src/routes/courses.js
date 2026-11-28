@@ -2,6 +2,7 @@
 const express = require('express');
 const db = require('../db');
 const { requireLogin } = require('../middleware/auth');
+const { audit } = require('../logger');
 
 const router = express.Router();
 
@@ -9,6 +10,8 @@ const router = express.Router();
 router.get('/', (req, res) => {
     const q = (req.query.q || '').toString();
     let courses;
+    //// SECURE (#15): parameterised query - the search term is sent separately
+    //// from the SQL, so it is always treated as data, never as SQL code
     if (q) {
         const like = `%${q}%`;
         courses = db.prepare(
@@ -67,9 +70,11 @@ router.post('/course/:id/reviews', requireLogin, (req, res) => {
         return res.status(400).render('error', { status: 400, message: 'A rating (1-5) and review text are requred' });
     }
 
-    /// Secure default: every new reviews starts as pending 
-    db.prepare('INSERT INTO reviews (course_id, user_id, rating, body) VALUES (?, ?, ?, ?)')
+    /// secure default: every new reviews starts as pending 
+    const result = db.prepare('INSERT INTO reviews (course_id, user_id, rating, body) VALUES (?, ?, ?, ?)')
         .run(course.id, req.session.user.id, rating, body);
+    //// SECURE (#22): log the new review
+    audit(req, 'REVIEW_SUBMITTED', `review #${result.lastInsertRowid} for ${course.code}`);
     
     res.redirect(`/course/${course.id}?submitted=1`);
 });

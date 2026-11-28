@@ -2,6 +2,7 @@
 const express = require('express');
 const db = require('../db');
 const { requireRole } = require('../middleware/auth');
+const { audit } = require('../logger');
 
 const router = express.Router();
 router.use(requireRole('admin'));
@@ -27,6 +28,7 @@ router.post('/users/:id/role', (req, res) => {
     if(result.changes === 0) {
         return res.status(404).render('error', { status: 404, message: 'User not found' });
     }
+    audit(req, 'ROLE_CHANGED', `user #${id} -> ${role}`);
     res.redirect('/admin/users?msg=' + encodeURIComponent('Role update'));
 });
 
@@ -39,6 +41,7 @@ router.post('/users/:id/delete', (req, res) => {
         return res.status(403).render('error', { status: 403, message: 'You cannot delete your own account here' });
     }
     db.prepare('DELETE FROM users WHERE id = ?').run(id);
+    audit(req, 'USER_DELETED', `user #${id}`);
     res.redirect('/admin/users?msg=' + encodeURIComponent('User deleted'));
 });
 
