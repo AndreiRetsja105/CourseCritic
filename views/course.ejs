@@ -21,8 +21,8 @@
   <% reviews.forEach(r => { %>
     <li class="review" id="review-<%= r.id %>">
       <div class="stars" aria-label="<%= r.rating %> out of 5"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></div>
-      <%# Review text written by users is escaped - safe from stored XSS %>
-      <p class="body"><%= r.body %></p>
+      <%# INSECURE (#12): review text is printed WITHOUT escaping - stored XSS %>
+      <p class="body"><%- r.body %></p>
       <%# Reviews are anonymous: no author name is shown %>
       <p class="meta">Anonymous student &middot; <%= r.created_at %> &middot;
         <a href="#highlight=<%= r.id %>">Link to this review</a></p>
