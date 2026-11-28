@@ -13,8 +13,8 @@
       <li class="review">
         <p class="meta"><strong><%= r.code %></strong> &ndash; <%= r.title %> &middot; submitted <%= r.created_at %></p>
         <div class="stars"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></div>
-        <%# INSECURE (#12): stored XSS runs in the moderator's browser %>
-        <p class="body"><%- r.body %></p>
+        <%# Review text is escaped - the moderator's browser is protected from stored XSS %>
+        <p class="body"><%= r.body %></p>
         <%# Separation of duties: no buttons for the moderator's own review %>
         <% if (r.user_id === currentUser.id) { %>
           <p class="meta">This is your own review &ndash; another moderator must review it.</p>

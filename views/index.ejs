@@ -10,9 +10,9 @@
     <button type="submit">Search</button>
 </form>
 
-<%# INSECURE (#11): the search term is printed back WITHOUT escaping - reflected XSS %>
+<%# SECURE (#16): the search term is HTML-escaped with the escaped output tag %>
 <% if (q) { %>
-  <p class="results-for">Results for: <strong><%- q %></strong> (<%= courses.length %>)</p>
+  <p class="results-for">Results for: <strong><%= q %></strong> (<%= courses.length %>)</p>
 <% } %>
 
 <% if (courses.length === 0) { %>
