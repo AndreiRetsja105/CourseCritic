@@ -19,6 +19,8 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-only-secret', 
     resave: false, 
     saveUninitialized: false,
+    //// INSECURE (#14): no HttpOnly - JavaScript (and XSS) can read the session cookie
+    cookie: { httpOnly: false },
 }));
 
 app.use((req, res, next) => {
@@ -40,8 +42,9 @@ app.use((req, res) => {
 /// eroors handler 
 //// eslint - disable - next - line no-unused-vars 
 app.use((err, req, res, next) => {
-    console.error(err);
-    res.status(500).render('error', { status: 500, message: 'Something went wrong' });
+  console.error(err);
+  //// INSECURE (#14): the full error message and stack trace are shown to the user
+  res.status(500).send(`<h1>Error 500</h1><pre>${err.stack}</pre>`);
 });
 
 const port = process.env.PORT || 3000;

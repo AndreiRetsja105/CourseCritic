@@ -5,14 +5,13 @@
 
 <%# GET form: the search term appears in the URL as ?q=... %>
 <form method="get" action="/" class="search" role="search">
-    <label for="q">Search by litle, code or lecture</label>
-    <input id="q" name="q" type="search" value="<%= q %>" placeholder="e.g. Security"> 
-    <button type="submit">Search</button>     
+    <label for="q">Search by title, code or lecturer</label>
+    <input id="q" name="q" type="search" value="<%= q %>" placeholder="e.g. Security">
+    <button type="submit">Search</button>
 </form>
 
-<%# The search term is printed back escaped - safe from reflected XSS %>
+<%# INSECURE (#11): the search term is printed back WITHOUT escaping - reflected XSS %>
 <% if (q) { %>
-    <%# INSECURE (#11): the search term is printed WITHOUT escaping - reflected XSS %>
   <p class="results-for">Results for: <strong><%- q %></strong> (<%= courses.length %>)</p>
 <% } %>
 
