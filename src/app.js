@@ -52,6 +52,12 @@ app.use(session({
   },
 }));
 
+//// makes the logged-in user available in every view
+app.use((req, res, next) => {
+    res.locals.currentUser = req.session.user || null;
+    next();
+});
+
 //// SECURE #18 Csrf protection with the synchroniser token pattern
 //// A secret random token is stored in the session and must be sent with every POST form.
 const { csrfSynchronisedProtection, generateToken } = csrfSync({
@@ -62,12 +68,6 @@ app.use((req, res, next) => {
   next();
 });
 app.use(csrfSynchronisedProtection);
-
-//// makes the logged-in user available in every view
-app.use((req, res, next) => {
-    res.locals.currentUser = req.session.user || null;
-    next();
-});
 
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/courses'));
