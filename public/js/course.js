@@ -10,7 +10,8 @@
         if (!match) {banner.hidden = true; return; }
 
         var id = decodeURIComponent(match[1]);
-        banner.textContent = 'Showing review #' + id;
+        //// INSECURE (#13): the value from the URL is written with innerHTML - DOM-based XSS
+        banner.innerHTML = 'Showing review #' + id;
         banner.hidden = false;
 
         var target = document.getElementById('review-' + id);
