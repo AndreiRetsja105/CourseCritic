@@ -10,15 +10,14 @@ router.get('/', (req, res) => {
     const q = (req.query.q || '').toString();
     let courses;
     if (q) {
-        //// INSECURE (#10): the search term is pasted directly into the SQL string.
-        //// An attacker can close the quote and add their own SQL (SQL injection).
+        const like = `%${q}%`;
         courses = db.prepare(
             `SELECT c.*, ROUND(AVG(r.rating), 1) AS avg_rating, COUNT(r.id) AS review_count
                 FROM courses c
                 LEFT JOIN reviews r ON r.course_id = c.id AND r.status = 'approved'
-                WHERE c.title LIKE '%${q}%' OR c.code LIKE '%${q}%' OR c.lecturer LIKE '%${q}%'
-                GROUP BY c.id ORDER BY c.code`
-        ).all();
+                WHERE c.title LIKE ? OR c.code LIKE ? OR c.lecturer LIKE ?
+                GROUP BY c.id ORDER BY c.code`  
+        ).all(like, like, like);
     } else {
         courses = db.prepare(
             `SELECT c.*, ROUND(AVG(r.rating), 1) AS avg_rating, COUNT(r.id) AS review_count
