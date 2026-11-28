@@ -46,7 +46,7 @@
 
 <h2>Write a review</h2>
 <% if (currentUser) { %>
-  <form method="post" action="/course/<%= course.id %>/reviews" class="review-form">
+  <form method="post" action="/course/<%= course.id %>/reviews" class="review-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <label for="rating">Rating</label>
     <select id="rating" name="rating" required>
       <option value="">Choose…</option>

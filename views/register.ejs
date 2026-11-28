@@ -5,7 +5,7 @@
 
 <% if (error) { %><p class="error" role="alert"><%= error %></p><% } %>
 
-<form method="post" action="/register" class="auth">
+<form method="post" action="/register" class="auth"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <%# After an error, username and email are filled in again; passwords are not %>
   <label for="username">Username</label>
   <input id="username" name="username" value="<%= values.username || '' %>" autocomplete="username" required>

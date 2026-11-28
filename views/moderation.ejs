@@ -19,7 +19,7 @@
         <% if (r.user_id === currentUser.id) { %>
           <p class="meta">This is your own review &ndash; another moderator must review it.</p>
         <% } else { %>
-          <form method="post" action="/moderation/<%= r.id %>" class="inline">
+          <form method="post" action="/moderation/<%= r.id %>" class="inline"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button type="submit" name="action" value="approve">Approve</button>
             <button type="submit" name="action" value="reject" class="secondary">Reject</button>
           </form>

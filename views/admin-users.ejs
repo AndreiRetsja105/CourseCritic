@@ -20,7 +20,7 @@
           <% if (u.id === currentUser.id) { %>
             <%= u.role %>
           <% } else { %>
-            <form method="post" action="/admin/users/<%= u.id %>/role" class="inline">
+            <form method="post" action="/admin/users/<%= u.id %>/role" class="inline"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <select name="role" aria-label="Role for <%= u.username %>">
                 <% roles.forEach(role => { %>
                   <option value="<%= role %>" <%= role === u.role ? 'selected' : '' %>><%= role %></option>
@@ -33,7 +33,7 @@
         <td><%= u.created_at %></td>
         <td>
           <% if (u.id !== currentUser.id) { %>
-            <form method="post" action="/admin/users/<%= u.id %>/delete" class="inline">
+            <form method="post" action="/admin/users/<%= u.id %>/delete" class="inline"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button type="submit" class="secondary">Delete</button>
             </form>
           <% } %>

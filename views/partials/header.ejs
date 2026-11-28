@@ -19,7 +19,7 @@
         <% if (currentUser) { %>
             <span class="who">Signed in as <strong><%= currentUser.username %></strong> (<%= currentUser.role %>)</span>
             <%# Logout is a POST form, not a link %>
-            <form method="post" action="/logout" class="inline"><button type="submit" class="link">Log Out</button></form>
+            <form method="post" action="/logout" class="inline"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="link">Log Out</button></form>
         <% } else { %>
             <a href="/login">Log In</a>
             <a href="/register">Register</a>
